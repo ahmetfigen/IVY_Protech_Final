@@ -1,0 +1,53 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_IT_INTRO
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_it_intro.
+
+TYPES: BEGIN OF ty_makt,
+        matnr TYPE matnr,
+        spras TYPE spras,
+        maktx TYPE maktx,
+      END OF ty_makt.
+
+DATA: wa_makt TYPE ty_makt,
+      it_makt TYPE TABLE OF ty_makt.
+
+wa_makt-matnr = '100'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Pen'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '1200'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Pencil'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '1200'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Bar'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '400'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Brush'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '500'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Book'.
+APPEND wa_makt TO it_makt.
+
+CLEAR wa_makt.
+
+*READ TABLE it_makt INTO wa_makt INDEX 2.   " Read keyword for one row.
+*READ TABLE it_makt INTO wa_makt WITH KEY matnr = '300'.
+
+LOOP AT it_makt INTO wa_makt WHERE matnr EQ '1200'.
+  WRITE: / wa_makt-matnr, wa_makt-spras, wa_makt-maktx.
+
+ENDLOOP.
