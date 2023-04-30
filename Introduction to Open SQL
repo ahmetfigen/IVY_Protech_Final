@@ -1,0 +1,52 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_INTRO_OPEN_SQL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_intro_open_sql.
+
+TYPES: BEGIN OF ty_makt,
+        v_matnr TYPE matnr,
+        v_spras TYPE spras,
+        v_maktx TYPE maktx,
+      END OF ty_makt.
+
+DATA: wa_makt TYPE ty_makt,
+      it_makt TYPE TABLE OF ty_makt.
+
+DATA wa_makt_full TYPE makt.
+DATA it_makt_full TYPE TABLE OF makt.
+
+PARAMETERS p_matnr TYPE matnr.
+
+*SELECT SINGLE matnr spras maktx FROM makt INTO wa_makt WHERE matnr EQ p_matnr.              "SELECT SINGLE means single row,   To Select certain field.
+*
+*WRITE: / wa_makt-v_matnr, wa_makt-v_spras, wa_makt-v_maktx.
+
+*SELECT matnr spras maktx FROM makt INTO wa_makt WHERE matnr EQ p_matnr.   " Fetches all eligible data from the table, not single one.
+*  WRITE: / wa_makt-v_matnr, wa_makt-v_spras, wa_makt-v_maktx.
+*
+*ENDSELECT.
+
+*SELECT * FROM makt INTO wa_makt_full WHERE matnr EQ p_matnr.                    " Select everything.
+*  WRITE: / wa_makt_full-mandt, wa_makt_full-matnr, wa_makt_full-spras, wa_makt_full-maktx, wa_makt_full-maktg.
+*
+*ENDSELECT.
+
+SELECT matnr spras maktx FROM makt INTO TABLE it_makt WHERE matnr EQ p_matnr.  "structure order must be same with database order.
+
+SELECT * FROM makt INTO TABLE it_makt_full WHERE matnr EQ  p_matnr.
+
+LOOP AT it_makt INTO wa_makt.
+
+  WRITE: / wa_makt-v_matnr, wa_makt-v_spras, wa_makt-v_maktx.
+
+ENDLOOP.
+
+LOOP AT it_makt_full INTO wa_makt_full.
+  WRITE: / wa_makt_full-mandt, wa_makt_full-matnr, wa_makt_full-spras, wa_makt_full-maktx, wa_makt_full-maktg.
+
+ENDLOOP.
