@@ -1,0 +1,58 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_INTERNAL_TABLES_3
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_internal_tables_3.
+
+
+TYPES: BEGIN OF ty_makt,
+        matnr TYPE matnr,
+        spras TYPE spras,
+        maktx TYPE maktx,
+  END OF ty_makt.
+
+DATA: it_makt TYPE STANDARD TABLE OF ty_makt,
+      wa_makt TYPE ty_makt.
+
+wa_makt-matnr = '100'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Pen'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '100'.
+wa_makt-spras = 'D'.
+wa_makt-maktx = 'Pen in German'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '200'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Pencil'.
+APPEND wa_makt TO it_makt.
+
+wa_makt-matnr = '500'.
+wa_makt-spras = 'E'.
+wa_makt-maktx = 'Book'.
+APPEND wa_makt TO it_makt.
+
+LOOP AT it_makt INTO wa_makt.
+  AT FIRST. "CONTROL BREAK STATEMENTS.
+    WRITE: / 'At first triggered', sy-tabix.
+  ENDAT.
+
+  AT NEW matnr.
+    WRITE: / 'At new triggered', sy-tabix.
+  ENDAT.
+
+  AT END OF matnr.
+    WRITE: / 'At end of triggered', sy-tabix.
+  ENDAT.
+
+  AT LAST.
+    WRITE: / 'At last triggered', sy-tabix.
+  ENDAT.
+
+ENDLOOP.
