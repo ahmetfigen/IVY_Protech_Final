@@ -1,0 +1,44 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_IVY_SELECTION_SCREEN
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_ivy_selection_screen.
+
+DATA: it_makt TYPE STANDARD TABLE OF makt,
+      wa_makt TYPE makt.
+
+*PARAMETERS: p_matnr TYPE matnr,
+*            p_spras TYPE spras.
+
+SELECT-OPTIONS: s_matnr FOR wa_makt-matnr NO-EXTENSION NO INTERVALS,  "LOOKS LIKE PARAMETERS BUT WORKS LIKE SELECT OPTIONS. SYSTEM AUTOMATICALLY IGNORES IF NO DATA ENTERED.
+                s_spras FOR wa_makt-spras NO-EXTENSION NO INTERVALS.
+SELECT * FROM makt INTO TABLE it_makt WHERE matnr IN s_matnr AND spras IN s_spras.
+
+
+*IF p_matnr IS NOT INITIAL AND p_spras IS NOT INITIAL.
+*
+*  SELECT * FROM makt INTO TABLE it_makt WHERE matnr EQ p_matnr AND spras EQ p_spras.
+*
+*ELSEIF p_matnr IS INITIAL AND p_spras IS NOT INITIAL.
+*  SELECT * FROM makt INTO TABLE it_makt WHERE matnr EQ p_matnr AND spras EQ p_spras.
+*ELSEIF p_matnr IS NOT INITIAL AND p_spras IS INITIAL.
+*  SELECT * FROM makt INTO TABLE it_makt WHERE matnr EQ p_matnr.
+*ELSEIF p_matnr IS INITIAL AND p_spras IS INITIAL.
+*
+*  SELECT * FROM makt INTO TABLE it_makt. "WHERE matnr EQ p_matnr AND spras EQ p_spras.
+*
+*ENDIF.
+
+IF  sy-subrc IS INITIAL.
+
+ENDIF.
+
+LOOP AT it_makt INTO wa_makt.
+
+  WRITE: / wa_makt-matnr, wa_makt-spras, wa_makt-maktx.
+
+ENDLOOP.
