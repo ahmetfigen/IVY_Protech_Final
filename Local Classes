@@ -1,0 +1,39 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_IVY_CLASSES
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_ivy_classes.
+
+CLASS lcl_example DEFINITION.
+
+  PUBLIC SECTION.
+    CLASS-DATA counter TYPE i.  "Typing 'CLASS' prior to keyword makes it static.
+    CLASS-METHODS get_counter EXPORTING value TYPE i.
+    CLASS-EVENTS double_click.
+
+
+  PROTECTED SECTION.
+  
+  CLASS-DATA next_number TYPE i. 
+
+  PRIVATE SECTION.
+  CLASS-DATA another_attr TYPE i. 
+
+
+ENDCLASS.
+
+
+CLASS lcl_example IMPLEMENTATION.
+
+  METHOD get_counter.
+    DATA lv_counter TYPE i.
+    counter = counter + 1.
+    value = counter.
+
+  ENDMETHOD.
+
+ENDCLASS.
