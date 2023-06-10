@@ -1,0 +1,43 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_PERSISTANT_DATA
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_persistant_data.
+
+DATA: wa_zaf_makt TYPE zaf_makt.
+
+DATA it_zaf_makt TYPE STANDARD TABLE OF zaf_makt.
+
+DATA o_err TYPE REF TO cx_sy_open_sql_db. " to avoid run time error
+
+*SELECT SINGLE matnr spras maktx FROM makt INTO CORRESPONDING FIELDS OF wa_zaf_makt WHERE matnr EQ '100-100' AND spras EQ 'E'.
+*SELECT SINGLE matnr spras maktx FROM makt INTO CORRESPONDING FIELDS OF wa_zaf_makt WHERE matnr EQ '100-600' AND spras EQ 'E'. "for modify and delete.
+TRY.
+    SELECT matnr spras maktx FROM makt INTO CORRESPONDING FIELDS OF TABLE it_zaf_makt WHERE matnr EQ '100-600'. "for table, not structure.
+
+*wa_zaf_makt-maktx = 'New Description'. "for update.
+
+*INSERT zaf_makt FROM wa_zaf_makt.
+*UPDATE zaf_makt FROM wa_zaf_makt.
+*MODIFY zaf_makt FROM wa_zaf_makt.
+*DELETE zaf_makt FROM wa_zaf_makt.
+    INSERT zaf_makt FROM TABLE it_zaf_makt.
+
+    IF sy-subrc IS INITIAL.
+
+      MESSAGE 'Update success!' TYPE 'I'.
+
+    ELSE.
+      MESSAGE 'update failed!' TYPE 'I'.
+
+    ENDIF.
+ CATCH CX_SY_OPEN_SQL_DB INTO o_err.
+ WRITE o_err->get_longtext(
+*          preserve_newlines =
+      ).
+
+ENDTRY.
