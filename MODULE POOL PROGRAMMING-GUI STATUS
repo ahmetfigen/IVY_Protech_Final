@@ -1,0 +1,301 @@
+*&---------------------------------------------------------------------*
+*& Module Pool       ZAF_MODULE_POOL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+PROGRAM zaf_module_pool.
+TABLES zaf_makt.
+DATA: v_matnr TYPE matnr,
+      v_maktx TYPE maktx,
+      v_spras TYPE spras.
+
+DATA: v_dynnr TYPE sy-dynnr VALUE '0200'.
+DATA: it_makt TYPE STANDARD TABLE OF zaf_makt.
+DATA: ch_monthly,ch_quarterly, ch_annual, wsel.
+
+DATA: rb1, rb2, rb3.
+DATA: v_werks TYPE werks_d.
+DATA ok_code TYPE sy-ucomm.
+DATA: container TYPE REF TO cl_gui_custom_container,
+      controller TYPE REF TO cl_gui_textedit,
+      lines TYPE STANDARD TABLE OF line,
+      line TYPE line.
+CONTROLS : tbcontrol TYPE TABLEVIEW USING SCREEN 100.
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_0100  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE status_0100 OUTPUT.
+  SET PF-STATUS 'GUI100'.
+  SET TITLEBAR 'TITLE'.
+  DATA count TYPE i.
+  DESCRIBE TABLE it_makt LINES count.
+  tbcontrol-lines = count. "Too keep line dynamic.
+  tbcontrol-v_scroll = 'X'.
+  DATA : vrm_values TYPE vrm_values,
+        vrm_value LIKE LINE OF vrm_values.
+
+  vrm_value-key = '100-100'.
+  vrm_value-text = 'Pen'.
+  APPEND vrm_value TO vrm_values.
+
+  vrm_value-key = '100-600'.
+  vrm_value-text = 'Pencil'.
+  APPEND vrm_value TO vrm_values.
+
+  vrm_value-key = '100-300'.
+  vrm_value-text = 'Book'.
+  APPEND vrm_value TO vrm_values.
+
+
+
+
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id              = 'v_matnr'
+      values          = vrm_values
+    EXCEPTIONS
+      id_illegal_name = 1
+      OTHERS          = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+ENDMODULE.                 " STATUS_0100  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0100  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0100 INPUT.
+
+  CASE ok_code.
+    WHEN 'BACK' .
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT' .
+      LEAVE PROGRAM.
+    WHEN 'REFRESH'.
+      LEAVE TO CURRENT TRANSACTION.
+    WHEN OTHERS.
+  ENDCASE.
+*  SET SCREEN 400.
+*  CALL SCREEN 400.
+  LEAVE TO SCREEN 400.
+
+ENDMODULE.                 " USER_COMMAND_0100  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  GET_MAKTX  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE get_maktx INPUT.
+  CASE ok_code.
+    WHEN 'SUBMIT'.
+      CLEAR ok_code.
+      SELECT * FROM zaf_makt INTO TABLE it_makt WHERE matnr EQ v_matnr.
+      SELECT SINGLE maktx FROM makt INTO v_maktx WHERE matnr EQ v_matnr AND spras EQ 'E'.
+      IF v_matnr EQ '100-100'.
+        v_dynnr = '0200'.
+      ELSE.
+        v_dynnr = '0300'.
+      ENDIF.
+
+      IF sy-subrc IS NOT INITIAL.
+        MESSAGE 'No material found' TYPE 'E'.
+
+      ENDIF.
+
+    WHEN 'MM03'.
+      CLEAR ok_code.
+      CALL TRANSACTION 'MM03'.
+
+  ENDCASE.
+
+ENDMODULE.                 " GET_MAKTX  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  PBO  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE pbo OUTPUT.
+
+  READ TABLE it_makt INTO zaf_makt INDEX tbcontrol-current_line.
+*zaf_makt-matnr = '100'.
+*zaf_makt-spras = 'E'.
+*zaf_makt-maktx = 'Test'.
+ENDMODULE.                 " PBO  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  PAI  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE pai INPUT.
+  IF wsel IS NOT INITIAL.
+    MODIFY it_makt FROM zaf_makt INDEX tbcontrol-current_line.
+    IF sy-subrc IS NOT INITIAL .
+      APPEND zaf_makt TO it_makt.
+    ENDIF.
+  ENDIF.
+ENDMODULE.                 " PAI  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0200  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0200 INPUT.
+
+ENDMODULE.                 " USER_COMMAND_0200  INPUT
+
+*&SPWIZARD: FUNCTION CODES FOR TABSTRIP 'VTABCTRL'
+CONSTANTS: BEGIN OF c_vtabctrl,
+             tab1 LIKE sy-ucomm VALUE 'VTABCTRL_FC1',
+             tab2 LIKE sy-ucomm VALUE 'VTABCTRL_FC2',
+           END OF c_vtabctrl.
+*&SPWIZARD: DATA FOR TABSTRIP 'VTABCTRL'
+CONTROLS:  vtabctrl TYPE TABSTRIP.
+DATA:      BEGIN OF g_vtabctrl,
+             subscreen   LIKE sy-dynnr,
+             prog        LIKE sy-repid VALUE 'ZAF_MODULE_POOL',
+             pressed_tab LIKE sy-ucomm VALUE c_vtabctrl-tab1,
+           END OF g_vtabctrl.
+
+*&SPWIZARD: OUTPUT MODULE FOR TS 'VTABCTRL'. DO NOT CHANGE THIS LINE!
+*&SPWIZARD: SETS ACTIVE TAB
+MODULE vtabctrl_active_tab_set OUTPUT.
+  vtabctrl-activetab = g_vtabctrl-pressed_tab.
+  CASE g_vtabctrl-pressed_tab.
+    WHEN c_vtabctrl-tab1.
+      g_vtabctrl-subscreen = '0101'.
+    WHEN c_vtabctrl-tab2.
+      g_vtabctrl-subscreen = '0102'.
+    WHEN OTHERS.
+*&SPWIZARD:      DO NOTHING
+  ENDCASE.
+ENDMODULE.
+
+*&SPWIZARD: INPUT MODULE FOR TS 'VTABCTRL'. DO NOT CHANGE THIS LINE!
+*&SPWIZARD: GETS ACTIVE TAB
+MODULE vtabctrl_active_tab_get INPUT.
+  ok_code = sy-ucomm.
+  CASE ok_code.
+    WHEN c_vtabctrl-tab1.
+      g_vtabctrl-pressed_tab = c_vtabctrl-tab1.
+    WHEN c_vtabctrl-tab2.
+      g_vtabctrl-pressed_tab = c_vtabctrl-tab2.
+    WHEN OTHERS.
+*&SPWIZARD:      DO NOTHING
+  ENDCASE.
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_0110  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE status_0110 OUTPUT.
+*  SET PF-STATUS 'xxxxxxxx'.
+*  SET TITLEBAR 'xxx'.
+  LOOP AT SCREEN.
+    IF screen-name EQ 'V_WERKS' .
+      IF v_werks IS NOT INITIAL.
+        screen-input = '0'.
+      ELSE.
+        screen-input = '1'.
+      ENDIF.
+      MODIFY SCREEN.
+    ENDIF.
+  ENDLOOP.
+ENDMODULE.                 " STATUS_0110  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_0400  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE status_0400 OUTPUT.
+*  SET PF-STATUS 'xxxxxxxx'.
+*  SET TITLEBAR 'xxx'.
+
+ENDMODULE.                 " STATUS_0400  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0400  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0400 INPUT.
+  CASE ok_code .
+    WHEN 'BACK' .
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN OTHERS.
+  ENDCASE.
+
+ENDMODULE.                 " USER_COMMAND_0400  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  LOAD-CONTROL  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE load-control OUTPUT.
+  IF container IS INITIAL.
+    CREATE OBJECT container
+      EXPORTING
+*       parent         =
+        container_name = 'CUSTOM'.
+*    style                       =
+*    lifetime                    = lifetime_default
+*    repid                       =
+*    dynnr                       =
+*    no_autodef_progid_dynnr     =
+*  EXCEPTIONS
+*    cntl_error                  = 1
+*    cntl_system_error           = 2
+*    create_error                = 3
+*    lifetime_error              = 4
+*    lifetime_dynpro_dynpro_link = 5
+*    others                      = 6
+    .
+    IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+    ENDIF.
+
+    CREATE OBJECT controller
+      EXPORTING
+*       max_number_chars       =
+*       style  = 0
+*       wordwrap_mode          = WORDWRAP_AT_WINDOWBORDER
+*       wordwrap_position      = -1
+*       wordwrap_to_linebreak_mode = FALSE
+*       filedrop_mode          = DROPFILE_EVENT_OFF
+        parent = container
+*       lifetime               =
+*       name   =
+*  EXCEPTIONS
+*       error_cntl_create      = 1
+*       error_cntl_init        = 2
+*       error_cntl_link        = 3
+*       error_dp_create        = 4
+*       gui_type_not_supported = 5
+*       others = 6
+      .
+    IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+    ENDIF.
+  ENDIF.
+  line-line = 'This is line 1'.
+  APPEND line TO lines.
+
+  line-line = 'This is line 2'.
+  APPEND line TO lines.
+  controller->set_text_as_stream(
+  text = lines
+  ).
+
+ENDMODULE.                 " LOAD-CONTROL  OUTPUT
