@@ -1,0 +1,66 @@
+*&---------------------------------------------------------------------*
+*& Report  ZAF_SELECTION_SCREEN_LAST
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zaf_selection_screen_last.
+
+DATA: st_makt TYPE makt.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+SELECT-OPTIONS: p_matnr FOR st_makt-matnr NO-EXTENSION NO INTERVALS. " DEFAULT '100-100'.
+SELECT-OPTIONS: p_spras FOR st_makt-spras NO-EXTENSION NO INTERVALS.
+SELECT-OPTIONS: s_matnr FOR p_matnr NO-EXTENSION NO INTERVALS. "Remove range button.
+PARAMETERS: p_file TYPE ibipparms-path.
+PARAMETERS p_date TYPE sy-datum.
+SELECTION-SCREEN END OF BLOCK b1.
+
+SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE text-002.
+PARAMETERS: p_dsp AS CHECKBOX,
+            p_set AS CHECKBOX.
+SELECTION-SCREEN END OF BLOCK b2.
+
+SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE text-003.
+PARAMETERS: rb1 RADIOBUTTON GROUP rb,
+            rb2 RADIOBUTTON GROUP rb.
+SELECTION-SCREEN END OF BLOCK b3.
+
+AT SELECTION-SCREEN OUTPUT.
+
+  p_matnr = '100-100'.
+
+*  LOOP AT SCREEN.
+*    IF screen-name EQ 'P_SPRAS'.
+*      screen-input = 0.
+*      MODIFY SCREEN.
+*    ENDIF.
+*  ENDLOOP.
+
+AT SELECTION-SCREEN ON BLOCK b1. "p_matnr.
+*  IF p_matnr IS NOT INITIAL AND p_spras IS NOT INITIAL.
+  SELECT SINGLE * FROM makt INTO st_makt WHERE matnr IN p_matnr AND spras IN p_spras.
+*  ELSEIF p_matnr IS NOT INITIAL AND p_spras IS INITIAL.
+*    SELECT SINGLE * FROM makt INTO st_makt WHERE matnr EQ p_matnr.
+*  ENDIF.
+
+  IF sy-subrc IS NOT INITIAL.
+    MESSAGE 'Invalid input' TYPE 'E'.
+  ENDIF.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      program_name  = syst-cprog
+      dynpro_number = syst-dynnr
+      field_name    = 'P_FILE'
+    IMPORTING
+      file_name     = p_file.
+  .
+
+AT SELECTION-SCREEN ON HELP-REQUEST FOR p_file.
+
+  at SELECTION-SCREEN.
+    WRITE: / st_makt.
